@@ -1,0 +1,14 @@
+url: https://jcheruve.github.io/civicaccess/
+template:
+  bootstrap: 5
+reference:
+- title: Geocoding and tract assignment
+  contents: [geocode_addresses, points_from_lonlat, assign_tracts, flag_po_boxes, geocode_qa_summary]
+- title: Spatial access
+  contents: [e2sfca, gaussian_decay, binary_decay]
+- title: Composite index
+  contents: [normalize_indicator, build_index, simulate_index_uncertainty]
+- title: Survey-weighted validation helpers
+  contents: [recode_binary, svy_prop_by_group, svy_logit_or]
+- title: Example data
+  contents: [toy_example]

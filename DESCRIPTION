@@ -1,0 +1,40 @@
+Package: civicaccess
+Type: Package
+Title: Tract-Level Access Measures and Composite Indices for Civic Infrastructure
+Version: 0.1.0
+Authors@R: c(
+    person("Jubin J.", "Cheruvelil", email = "jcheruve@nyaahealth.org", role = c("aut", "cre")),
+    person("Petal", "Grower", email = "pgrower@nyaahealth.org", role = "aut"),
+    person("Nyaa Health Services LLC", role = c("cph", "fnd")))
+Description: Package-style, fully parameterized functions for building
+    census-tract measures of access to civic infrastructure. Includes address
+    geocoding and tract assignment with match-quality flags, enhanced two-step
+    floating catchment area (E2SFCA) access scores with Gaussian distance decay
+    and location-specific catchments, indicator normalization and composite
+    index construction, Monte Carlo rank uncertainty for index specification
+    choices, and survey-weighted helpers for validating an index against
+    respondent data. Examples and tests use synthetic data only.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
+Depends: R (>= 4.1.0)
+Imports:
+    dplyr (>= 1.1.0),
+    purrr (>= 1.0.0),
+    rlang (>= 1.1.0),
+    sf (>= 1.0-0),
+    stats,
+    utils,
+    tibble
+Suggests:
+    knitr,
+    rmarkdown,
+    survey,
+    testthat (>= 3.0.0),
+    tidygeocoder,
+    tigris
+Config/testthat/edition: 3
+VignetteBuilder: knitr
+URL: https://github.com/jcheruve/civicaccess
+BugReports: https://github.com/jcheruve/civicaccess/issues
