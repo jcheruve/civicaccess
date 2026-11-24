@@ -1,0 +1,98 @@
+---
+title: "From locations to a tract-level civic infrastructure index"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{From locations to a tract-level civic infrastructure index}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(collapse = TRUE, comment = "#>")
+```
+
+This vignette walks through the full workflow on synthetic data from
+`toy_example()`: assign locations to tracts, compute E2SFCA access, build a
+composite index, and check how sensitive tract ranks are to specification
+choices. No real organizations or respondents are used.
+
+```{r}
+library(civicaccess)
+toy <- toy_example()
+```
+
+## 1. Geocode and assign locations to tracts
+
+In production, addresses are geocoded with `geocode_addresses()` (Census
+Bureau geocoder by default), PO boxes are flagged with `flag_po_boxes()`, and
+coordinates become `sf` points with `points_from_lonlat()`. The toy supply
+points are already geocoded, so we go straight to tract assignment.
+
+```{r}
+assign_tracts(toy$supply, toy$tracts, tract_id = GEOID)
+```
+
+`geocode_qa_summary()` produces the match-rate table for a QA report:
+
+```{r}
+qa <- tibble::tibble(
+  source = c("bmf", "bmf", "bmf", "imls"),
+  geo_matched = c(TRUE, TRUE, FALSE, TRUE),
+  po_box = c(FALSE, FALSE, TRUE, FALSE)
+)
+geocode_qa_summary(qa, source)
+```
+
+## 2. E2SFCA access with urbanicity-specific catchments
+
+Each block group carries its own catchment (3 km urban, 8 km suburban, 15 km
+rural in this toy example). Access is computed with Gaussian distance decay.
+
+```{r}
+access <- e2sfca(
+  supply = toy$supply, demand = toy$demand,
+  demand_id = bg_id, demand_pop = pop_18_29,
+  catchment = catchment_m, supply_capacity = capacity
+)
+access
+```
+
+Swapping in `binary_decay()` reproduces classic 2SFCA, which is handy for
+hand-checking results:
+
+```{r}
+e2sfca(toy$supply, toy$demand, bg_id, pop_18_29, catchment_m,
+       supply_capacity = capacity, decay = binary_decay)
+```
+
+## 3. Build the composite index
+
+Indicators are grouped into dimensions, normalized, averaged within
+dimensions, and aggregated.
+
+```{r}
+dims <- list(
+  associational = c("nonprofit_access", "youth_org_access"),
+  public        = c("library_access", "school_access"),
+  connective    = "broadband_share"
+)
+
+idx <- build_index(toy$tract_indicators, dims, method = "percentile")
+idx[, c("GEOID", "dim_associational", "dim_public", "dim_connective",
+        "civic_index_score", "civic_index_rank")]
+```
+
+## 4. How much do specification choices move tract ranks?
+
+`simulate_index_uncertainty()` rebuilds the index under random draws of
+normalization method, aggregation rule, and dimension weights.
+
+```{r}
+unc <- simulate_index_uncertainty(toy$tract_indicators, dims, id = GEOID,
+                                  n_draws = 200, seed = 2027)
+unc[order(unc$median_rank), ]
+```
+
+Tracts with wide rank intervals are the ones whose civic desert
+classification depends on modeling choices, which is what a robustness
+report should surface before the index is used for validation.
